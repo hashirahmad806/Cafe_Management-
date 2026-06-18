@@ -1,0 +1,16 @@
+{
+  "name": "cafe-management-root",
+  "version": "1.0.0",
+  "description": "MERN Stack Cafe Management Workspace",
+  "private": true,
+  "scripts": {
+    "install-all": "npm install && npm install --prefix frontend && npm install --prefix backend",
+    "frontend": "npm run dev --prefix frontend",
+    "backend": "npm run dev --prefix backend",
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "build:frontend": "npm run build --prefix frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

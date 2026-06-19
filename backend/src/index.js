@@ -17,33 +17,6 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Connect to MongoDB Database and seed admin
-connectDB().then(async(conn) => {
-    if (conn) {
-        try {
-            const adminExists = await Admin.findOne({ email: 'admin@brewmanager.com' });
-            if (!adminExists) {
-                const salt = await bcrypt.genSalt(10);
-                const hashedPassword = await bcrypt.hash('password123', salt);
-                await Admin.create({
-                    name: 'Super Admin',
-                    email: 'admin@brewmanager.com',
-                    password: 'password123'
-                });
-                console.log('[Database] Default admin seeded (admin@brewmanager.com / password123)');
-            } else {
-                console.log('[Database] Admin user already exists');
-            }
-        } catch (err) {
-            console.error('[Seed] Error seeding admin:', err.message);
-        }
-    } else {
-        console.log('[Seed] Skipping admin seed - running in demo mode');
-    }
-}).catch(err => {
-    console.error('[Connect] Database connection error:', err.message);
-});
-
 // Global Middlewares
 const allowedOrigins = [
     'https://cafe-management-omega-gray.vercel.app',
@@ -60,6 +33,32 @@ app.use(cors({
     credentials: true,
 }));
 app.use(express.json());
+
+// Ensure DB is connected before every request (serverless-safe)
+app.use(async (req, res, next) => {
+    try {
+        const conn = await connectDB();
+        if (conn) {
+            // Seed admin on first successful connection
+            try {
+                const adminExists = await Admin.findOne({ email: 'admin@brewmanager.com' });
+                if (!adminExists) {
+                    await Admin.create({
+                        name: 'Super Admin',
+                        email: 'admin@brewmanager.com',
+                        password: 'password123'
+                    });
+                    console.log('[Database] Default admin seeded');
+                }
+            } catch (seedErr) {
+                // silently ignore seed errors
+            }
+        }
+        next();
+    } catch (err) {
+        next();
+    }
+});
 
 // API Endpoints
 app.use('/api/auth', authRoutes);
@@ -80,7 +79,11 @@ app.use((err, req, res, next) => {
     res.status(500).json({ message: 'Internal Server Error' });
 });
 
-// Bind Port listener
-app.listen(PORT, () => {
-    console.log(`[Server] Express server running on port ${PORT}`);
-});
+// For local development only
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`[Server] Express server running on port ${PORT}`);
+    });
+}
+
+export default app;

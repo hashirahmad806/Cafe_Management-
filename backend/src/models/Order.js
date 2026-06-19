@@ -38,6 +38,16 @@ const orderSchema = new mongoose.Schema({
     type: Number, 
     required: true, 
     min: 0 
+  },
+  specialNotes: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  paymentMethod: {
+    type: String,
+    enum: ['counter', 'now'],
+    default: 'counter'
   }
 }, { timestamps: true });
 

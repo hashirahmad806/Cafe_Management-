@@ -16,40 +16,56 @@ export default function Cart() {
   const cardRef = useRef(null);
   const successRef = useRef(null);
 
+  const tableNumber = 93;
   const tax = cartTotal * 0.08;
   const total = cartTotal + tax;
+  const fmt = (p) => `Rs. ${p.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 
   useEffect(() => {
     gsap.fromTo(cardRef.current, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: 'power3.out' });
   }, []);
 
-  const handlePlace = () => {
+  const handlePlace = async () => {
     setPlacing(true);
     const orderData = {
+      customerName: 'Guest',
+      tableNumber,
       items: cart.map(i => ({ name: i.name, quantity: i.quantity, menuItem: i._id })),
       totalAmount: total,
       specialNotes: notes,
       paymentMethod: payMethod,
     };
 
-    fetch(`${API_URL}/orders`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderData)
-    }).catch(() => {}).finally(() => {
-      setTimeout(() => {
-        setFinalOrder({
-          items: [...cart],
-          subtotal: cartTotal,
-          tax: tax,
-          total: total,
-          method: payMethod,
-          id: Math.floor(Math.random() * 1000000).toString().padStart(6, '0')
-        });
-        setPlacing(false);
-        setPlaced(true);
-        clearCart();
-        gsap.fromTo(successRef.current, { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: 'back.out(1.7)' });
-      }, 1000);
+    let orderId = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+
+    try {
+      const res = await fetch(`${API_URL}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData),
+      });
+      if (res.ok) {
+        const saved = await res.json();
+        orderId = saved._id?.slice(-6).toUpperCase() || orderId;
+      }
+    } catch {
+      // Still show receipt locally if API is unreachable
+    }
+
+    setFinalOrder({
+      items: [...cart],
+      subtotal: cartTotal,
+      tax,
+      total,
+      method: payMethod,
+      id: orderId,
     });
+    setPlacing(false);
+    setPlaced(true);
+    clearCart();
+    setTimeout(() => {
+      gsap.fromTo(successRef.current, { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: 'back.out(1.7)' });
+    }, 50);
   };
 
   if (placed && finalOrder) return (
@@ -70,22 +86,22 @@ export default function Cart() {
             {finalOrder.items.map((item, idx) => (
               <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14 }}>
                 <span style={{ color: '#4A4A4A' }}>{item.quantity}x {item.name}</span>
-                <span style={{ color: '#1A1A1A', fontWeight: 500 }}>${(item.price * item.quantity).toFixed(2)}</span>
+                <span style={{ color: '#1A1A1A', fontWeight: 500 }}>{fmt(item.price * item.quantity)}</span>
               </div>
             ))}
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 14 }}>
             <span style={{ color: '#7A7A7A' }}>Subtotal</span>
-            <span style={{ color: '#4A4A4A' }}>${finalOrder.subtotal.toFixed(2)}</span>
+            <span style={{ color: '#4A4A4A' }}>{fmt(finalOrder.subtotal)}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, fontSize: 14 }}>
             <span style={{ color: '#7A7A7A' }}>Tax (8%)</span>
-            <span style={{ color: '#4A4A4A' }}>${finalOrder.tax.toFixed(2)}</span>
+            <span style={{ color: '#4A4A4A' }}>{fmt(finalOrder.tax)}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #1A1A1A', paddingTop: 16, marginBottom: 32 }}>
             <span style={{ fontSize: 16, fontWeight: 700, color: '#1A1A1A' }}>Total</span>
-            <span style={{ fontFamily: 'Playfair Display, serif', fontSize: 20, fontWeight: 700, color: '#C8873A' }}>${finalOrder.total.toFixed(2)}</span>
+            <span style={{ fontFamily: 'Playfair Display, serif', fontSize: 20, fontWeight: 700, color: '#C8873A' }}>{fmt(finalOrder.total)}</span>
           </div>
 
           <div style={{ display: 'flex', gap: 12 }}>
@@ -116,7 +132,7 @@ export default function Cart() {
             </div>
             <div style={{ background: '#F2EDE5', padding: '6px 14px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
               <span style={{ fontSize: 12, color: '#7A7A7A' }}>Table</span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#1A1A1A' }}>93</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#1A1A1A' }}>{tableNumber}</span>
             </div>
           </div>
 
@@ -166,7 +182,7 @@ export default function Cart() {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 12 }}>
-                <p style={{ fontSize: 15, fontWeight: 700, color: '#1A1A1A' }}>${(item.price * item.quantity).toFixed(2)}</p>
+                <p style={{ fontSize: 15, fontWeight: 700, color: '#1A1A1A' }}>{fmt(item.price * item.quantity)}</p>
                 <button onClick={() => removeFromCart(item._id)}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#C8C8C8', transition: 'color 0.15s', display: 'flex' }}
                   onMouseEnter={e => e.currentTarget.style.color = '#D94040'}
@@ -225,15 +241,15 @@ export default function Cart() {
               <div style={{ background: '#fff', border: '1px solid #E8E1D6', borderRadius: 12, padding: '20px 18px', marginBottom: 24 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
                   <span style={{ fontSize: 14, color: '#7A7A7A' }}>Subtotal</span>
-                  <span style={{ fontSize: 14, color: '#4A4A4A', fontWeight: 500 }}>${cartTotal.toFixed(2)}</span>
+                  <span style={{ fontSize: 14, color: '#4A4A4A', fontWeight: 500 }}>{fmt(cartTotal)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 14, borderBottom: '1px solid #F0EDE8', marginBottom: 14 }}>
                   <span style={{ fontSize: 14, color: '#7A7A7A' }}>Tax (8%)</span>
-                  <span style={{ fontSize: 14, color: '#4A4A4A', fontWeight: 500 }}>${tax.toFixed(2)}</span>
+                  <span style={{ fontSize: 14, color: '#4A4A4A', fontWeight: 500 }}>{fmt(tax)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: 16, fontWeight: 700, color: '#1A1A1A' }}>Total</span>
-                  <span style={{ fontFamily: 'Playfair Display, serif', fontSize: 20, fontWeight: 700, color: '#C8873A' }}>${total.toFixed(2)}</span>
+                  <span style={{ fontFamily: 'Playfair Display, serif', fontSize: 20, fontWeight: 700, color: '#C8873A' }}>{fmt(total)}</span>
                 </div>
               </div>
 
@@ -249,7 +265,7 @@ export default function Cart() {
                   padding: '0 24px', transition: 'background 0.2s',
                 }}>
                 <span>{placing ? 'Sending to Kitchen...' : 'Place Order & Send to Kitchen'}</span>
-                <span style={{ fontFamily: 'Playfair Display, serif', fontSize: 16, fontWeight: 700, color: '#C8873A' }}>${total.toFixed(2)}</span>
+                <span style={{ fontFamily: 'Playfair Display, serif', fontSize: 16, fontWeight: 700, color: '#C8873A' }}>{fmt(total)}</span>
               </button>
             </>
           )}

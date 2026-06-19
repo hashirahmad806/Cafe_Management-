@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { ShoppingBag, Check, Plus, Search, Droplets, Coffee, Sandwich, Cake } from 'lucide-react';
 import gsap from 'gsap';
@@ -203,7 +204,7 @@ const CATS = [
 
                     return ( <
                         div style = {
-                            { background: '#FAF8F4', minHeight: '100vh', paddingTop: 88, paddingBottom: 80 } } >
+                            { background: '#FAF8F4', minHeight: '100vh', paddingTop: 88, paddingBottom: cart.cartCount > 0 ? 120 : 80 } } >
                         <
                         div style = {
                             { maxWidth: 1280, margin: '0 auto', padding: '0 24px' } } >
@@ -300,58 +301,6 @@ const CATS = [
                         /div> <
                         /div>
 
-                        { /* ─── FLOATING CART BAR ─── */ } {
-                            cart.cartCount > 0 && ( <
-                                a href = "/cart"
-                                style = {
-                                    {
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'space-between',
-                                        background: '#1A1A1A',
-                                        color: '#fff',
-                                        padding: '14px 22px',
-                                        borderRadius: 14,
-                                        marginBottom: 36,
-                                        textDecoration: 'none',
-                                        boxShadow: '0 12px 36px rgba(0,0,0,0.16)',
-                                        transition: 'transform 0.2s',
-                                    }
-                                }
-                                onMouseEnter = { e => e.currentTarget.style.transform = 'translateY(-1px)' }
-                                onMouseLeave = { e => e.currentTarget.style.transform = 'translateY(0)' } >
-                                <
-                                div style = {
-                                    { display: 'flex', alignItems: 'center', gap: 12 } } >
-                                <
-                                div style = {
-                                    { width: 34, height: 34, borderRadius: 8, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' } } >
-                                <
-                                ShoppingBag size = { 16 }
-                                color = "#1A1A1A" / >
-                                <
-                                /div> <
-                                div >
-                                <
-                                p style = {
-                                    { fontSize: 14, fontWeight: 700 } } > { cart.cartCount }
-                                item { cart.cartCount !== 1 ? 's' : '' } in your bag < /p> <
-                                p style = {
-                                    { fontSize: 12, color: '#888', marginTop: 1 } } > Tap to review your order < /p> <
-                                /div> <
-                                /div> <
-                                div style = {
-                                    { display: 'flex', alignItems: 'center', gap: 14 } } >
-                                <
-                                span style = {
-                                    { fontFamily: 'Playfair Display, serif', fontSize: 18, fontWeight: 700, color: '#C8873A' } } > { fmt(cart.cartTotal) } < /span> <
-                                span style = {
-                                    { background: '#C8873A', color: '#fff', padding: '7px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600 } } > View Order→ < /span> <
-                                /div> <
-                                /a>
-                            )
-                        }
-
                         { /* ─── SECTION DIVIDERS + GRID ─── */ } {
                             ['Drinks', 'Food', 'Cake'].map(section => {
                                 const sectionItems = filtered.filter(i => i.category === section);
@@ -435,7 +384,64 @@ const CATS = [
                         }
 
                         <
-                        /div> <
+                        /div>
+
+                        { /* ─── FLOATING CART BAR (fixed) ─── */ } {
+                            cart.cartCount > 0 && ( <
+                                Link to = "/cart"
+                                style = {
+                                    {
+                                        position: 'fixed',
+                                        bottom: 24,
+                                        left: '50%',
+                                        transform: 'translateX(-50%)',
+                                        width: 'min(560px, calc(100vw - 32px))',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        background: '#1A1A1A',
+                                        color: '#fff',
+                                        padding: '14px 22px',
+                                        borderRadius: 14,
+                                        textDecoration: 'none',
+                                        boxShadow: '0 12px 36px rgba(0,0,0,0.16)',
+                                        transition: 'transform 0.2s',
+                                        zIndex: 90,
+                                    }
+                                }
+                                onMouseEnter = { e => e.currentTarget.style.transform = 'translateX(-50%) translateY(-2px)' }
+                                onMouseLeave = { e => e.currentTarget.style.transform = 'translateX(-50%) translateY(0)' } >
+                                <
+                                div style = {
+                                    { display: 'flex', alignItems: 'center', gap: 12 } } >
+                                <
+                                div style = {
+                                    { width: 34, height: 34, borderRadius: 8, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' } } >
+                                <
+                                ShoppingBag size = { 16 }
+                                color = "#1A1A1A" / >
+                                <
+                                /div> <
+                                div >
+                                <
+                                p style = {
+                                    { fontSize: 14, fontWeight: 700 } } > { cart.cartCount }
+                                item { cart.cartCount !== 1 ? 's' : '' } in your bag < /p> <
+                                p style = {
+                                    { fontSize: 12, color: '#888', marginTop: 1 } } > Tap to review your order < /p> <
+                                /div> <
+                                /div> <
+                                div style = {
+                                    { display: 'flex', alignItems: 'center', gap: 14 } } >
+                                <
+                                span style = {
+                                    { fontFamily: 'Playfair Display, serif', fontSize: 18, fontWeight: 700, color: '#C8873A' } } > { fmt(cart.cartTotal) } < /span> <
+                                span style = {
+                                    { background: '#C8873A', color: '#fff', padding: '7px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600 } } > View Order→ < /span> <
+                                /div> <
+                                /Link>
+                            )
+                        } <
                         /div>
                     );
                 }

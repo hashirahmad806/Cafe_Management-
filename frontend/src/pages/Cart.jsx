@@ -3,6 +3,7 @@ import { useCart } from '../context/CartContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Minus, Plus, Trash2, CheckCircle2, FileText, CreditCard, Landmark, ChefHat } from 'lucide-react';
 import gsap from 'gsap';
+import { API_URL } from '../config';
 
 export default function Cart() {
   const { cart, updateQuantity, removeFromCart, clearCart, cartTotal } = useCart();
@@ -31,7 +32,7 @@ export default function Cart() {
       paymentMethod: payMethod,
     };
 
-    fetch('http://localhost:5000/api/orders', {
+    fetch(`${API_URL}/orders`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderData)
     }).catch(() => {}).finally(() => {
       setTimeout(() => {

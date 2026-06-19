@@ -18,6 +18,7 @@ import {
     UserPlus
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../config';
 
 const MOCK_MENU = [
     { _id: 'd1', name: 'Espresso', category: 'Drinks', price: 250, status: 'available', image: 'https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?w=500&q=85', description: 'A rich, full-bodied single shot pulled from our signature dark-roast blend.' },
@@ -109,28 +110,28 @@ export default function Dashboard() {
                 const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
 
                 // Fetch menu items
-                const menuRes = await fetch('http://localhost:5000/api/menu', { headers });
+                const menuRes = await fetch(`${API_URL}/menu`, { headers });
                 if (menuRes.ok) {
                     const menuData = await menuRes.json();
                     setMenuItems(menuData);
                 }
 
                 // Fetch staff (protected)
-                const staffRes = await fetch('http://localhost:5000/api/staff', { headers });
+                const staffRes = await fetch(`${API_URL}/staff`, { headers });
                 if (staffRes.ok) {
                     const staffData = await staffRes.json();
                     setStaffList(staffData);
                 }
 
                 // Fetch tables (protected)
-                const tablesRes = await fetch('http://localhost:5000/api/tables', { headers });
+                const tablesRes = await fetch(`${API_URL}/tables`, { headers });
                 if (tablesRes.ok) {
                     const tablesData = await tablesRes.json();
                     setTablesList(tablesData);
                 }
 
                 // Fetch settings (protected)
-                const settingsRes = await fetch('http://localhost:5000/api/settings', { headers });
+                const settingsRes = await fetch(`${API_URL}/settings`, { headers });
                 if (settingsRes.ok) {
                     const settingsData = await settingsRes.json();
                     setSettings(settingsData);
@@ -155,7 +156,7 @@ export default function Dashboard() {
             const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
 
             if (editItem) {
-                const res = await fetch(`http://localhost:5000/api/menu/${editItem._id}`, {
+                const res = await fetch(`${API_URL}/menu/${editItem._id}`, {
                     method: 'PUT',
                     headers,
                     body: JSON.stringify({...newItem, price: parseFloat(newItem.price) })
@@ -167,7 +168,7 @@ export default function Dashboard() {
                     setError('Failed to update menu item');
                 }
             } else {
-                const res = await fetch('http://localhost:5000/api/menu', {
+                const res = await fetch(`${API_URL}/menu`, {
                     method: 'POST',
                     headers,
                     body: JSON.stringify({...newItem, price: parseFloat(newItem.price) })
@@ -196,7 +197,7 @@ export default function Dashboard() {
     const handleDeleteMenu = async(id) => {
         try {
             const token = admin?.token;
-            const res = await fetch(`http://localhost:5000/api/menu/${id}`, {
+            const res = await fetch(`${API_URL}/menu/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -215,7 +216,7 @@ export default function Dashboard() {
         if (!newStaff.name) return;
         try {
             const token = admin?.token;
-            const res = await fetch('http://localhost:5000/api/staff', {
+            const res = await fetch(`${API_URL}/staff`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify(newStaff)
@@ -236,7 +237,7 @@ export default function Dashboard() {
     const handleDeleteStaff = async(id) => {
         try {
             const token = admin?.token;
-            const res = await fetch(`http://localhost:5000/api/staff/${id}`, {
+            const res = await fetch(`${API_URL}/staff/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -253,7 +254,7 @@ export default function Dashboard() {
     const handleSaveSettings = async() => {
         try {
             const token = admin?.token;
-            const res = await fetch('http://localhost:5000/api/settings', {
+            const res = await fetch(`${API_URL}/settings`, {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify(settings)

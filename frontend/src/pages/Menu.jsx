@@ -3,6 +3,7 @@ import { useCart } from '../context/CartContext';
 import { ShoppingBag, Check, Plus, Search, Droplets, Coffee, Sandwich, Cake } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { API_URL } from '../config';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -152,7 +153,7 @@ const CATS = [
                     const gridRef = useRef(null);
 
                     useEffect(() => {
-                        fetch('http://localhost:5000/api/menu')
+                        fetch(`${API_URL}/menu`)
                             .then(res => res.json())
                             .then(data => {
                                 setMenuItems(data);

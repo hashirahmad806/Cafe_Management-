@@ -45,7 +45,20 @@ connectDB().then(async(conn) => {
 });
 
 // Global Middlewares
-app.use(cors()); // Allow all cross-origin requests for dev convenience
+const allowedOrigins = [
+    'https://cafe-management-omega-gray.vercel.app',
+    'http://localhost:5173',
+];
+app.use(cors({
+    origin: function(origin, callback) {
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+}));
 app.use(express.json());
 
 // API Endpoints

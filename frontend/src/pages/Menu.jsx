@@ -143,6 +143,8 @@ const CATS = [
                 /* ─── COMPONENT ─────────────────────────────────────────────────────── */
                 export default function Menu() {
                     const cart = useCart();
+                    const [menuItems, setMenuItems] = useState([]);
+                    const [loading, setLoading] = useState(true);
                     const [cat, setCat] = useState('all');
                     const [search, setSearch] = useState('');
                     const [added, setAdded] = useState({});
@@ -150,16 +152,33 @@ const CATS = [
                     const gridRef = useRef(null);
 
                     useEffect(() => {
-                        // Header entrance
-                        gsap.fromTo(headerRef.current, { y: 32, opacity: 0 }, { y: 0, opacity: 1, duration: 0.9, ease: 'power3.out' });
+                        fetch('http://localhost:5000/api/menu')
+                            .then(res => res.json())
+                            .then(data => {
+                                setMenuItems(data);
+                                setLoading(false);
+                            })
+                            .catch(err => {
+                                console.error('Error fetching menu:', err);
+                                setLoading(false);
+                            });
                     }, []);
+
+                    useEffect(() => {
+                        // Header entrance
+                        if (!loading) {
+                            gsap.fromTo(headerRef.current, { y: 32, opacity: 0 }, { y: 0, opacity: 1, duration: 0.9, ease: 'power3.out' });
+                        }
+                    }, [loading]);
 
                     // Re-animate cards whenever filter changes
                     useEffect(() => {
-                        gsap.fromTo('.menu-card', { y: 28, opacity: 0, scale: 0.97 }, { y: 0, opacity: 1, scale: 1, duration: 0.55, stagger: 0.07, ease: 'power2.out' });
-                    }, [cat, search]);
+                        if (!loading) {
+                            gsap.fromTo('.menu-card', { y: 28, opacity: 0, scale: 0.97 }, { y: 0, opacity: 1, scale: 1, duration: 0.55, stagger: 0.07, ease: 'power2.out' });
+                        }
+                    }, [cat, search, loading]);
 
-                    const filtered = MENU_ITEMS.filter(i =>
+                    const filtered = menuItems.filter(i =>
                         (cat === 'all' || i.category === cat) &&
                         i.name.toLowerCase().includes(search.toLowerCase())
                     );
@@ -172,6 +191,14 @@ const CATS = [
 
                     /* format price (PKR / local) */
                     const fmt = (p) => `Rs. ${p.toLocaleString()}`;
+
+                    if (loading) {
+                        return (
+                            <div style={{ minHeight: '100vh', background: '#FAF8F4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <p style={{ fontFamily: 'Playfair Display, serif', fontSize: 24, color: '#1A1A1A' }}>Loading Menu...</p>
+                            </div>
+                        );
+                    }
 
                     return ( <
                         div style = {

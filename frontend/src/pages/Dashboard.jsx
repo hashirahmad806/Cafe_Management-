@@ -99,7 +99,7 @@ export default function Dashboard() {
     useEffect(() => {
         const fetchData = async() => {
             try {
-                const token = admin ? .token;
+            const token = admin?.token;
                 if (!token) {
                     setError('No authentication token found');
                     setLoading(false);
@@ -151,7 +151,7 @@ export default function Dashboard() {
     const handleSaveMenu = async() => {
         if (!newItem.name || !newItem.price) return;
         try {
-            const token = admin ? .token;
+            const token = admin?.token;
             const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
 
             if (editItem) {
@@ -195,7 +195,7 @@ export default function Dashboard() {
 
     const handleDeleteMenu = async(id) => {
         try {
-            const token = admin ? .token;
+            const token = admin?.token;
             const res = await fetch(`http://localhost:5000/api/menu/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -214,7 +214,7 @@ export default function Dashboard() {
     const handleSaveStaff = async() => {
         if (!newStaff.name) return;
         try {
-            const token = admin ? .token;
+            const token = admin?.token;
             const res = await fetch('http://localhost:5000/api/staff', {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -235,7 +235,7 @@ export default function Dashboard() {
 
     const handleDeleteStaff = async(id) => {
         try {
-            const token = admin ? .token;
+            const token = admin?.token;
             const res = await fetch(`http://localhost:5000/api/staff/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -252,7 +252,7 @@ export default function Dashboard() {
 
     const handleSaveSettings = async() => {
         try {
-            const token = admin ? .token;
+            const token = admin?.token;
             const res = await fetch('http://localhost:5000/api/settings', {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -449,14 +449,9 @@ export default function Dashboard() {
                             () => openEditMenu(item)
                         }
                         style = {
-                            { background: 'none', border: 'none', cursor: 'pointer', color: '#7A7A7A' } <
-                            button onClick = {
-                                () => openEditMenu(item)
-                            }
-                            style = {
-                                { background: 'none', border: 'none', cursor: 'pointer', color: '#7A7A7A' }
-                            } > < Pencil size = { 16 }
-                            /></button >
+                            { background: 'none', border: 'none', cursor: 'pointer', color: '#7A7A7A' }
+                        } > < Pencil size = { 16 }
+                        /></button >
                             <
                             button onClick = {
                                 () => handleDeleteMenu(item._id)

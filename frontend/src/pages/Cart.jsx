@@ -10,6 +10,7 @@ export default function Cart() {
   const [notes, setNotes] = useState('');
   const [placing, setPlacing] = useState(false);
   const [placed, setPlaced] = useState(false);
+  const [finalOrder, setFinalOrder] = useState(null);
   const navigate = useNavigate();
   const cardRef = useRef(null);
   const successRef = useRef(null);
@@ -34,6 +35,14 @@ export default function Cart() {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderData)
     }).catch(() => {}).finally(() => {
       setTimeout(() => {
+        setFinalOrder({
+          items: [...cart],
+          subtotal: cartTotal,
+          tax: tax,
+          total: total,
+          method: payMethod,
+          id: Math.floor(Math.random() * 1000000).toString().padStart(6, '0')
+        });
         setPlacing(false);
         setPlaced(true);
         clearCart();
@@ -42,19 +51,49 @@ export default function Cart() {
     });
   };
 
-  if (placed) return (
+  if (placed && finalOrder) return (
     <div style={{ minHeight: '100vh', background: '#FAF8F4', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, paddingTop: 100 }}>
-      <div ref={successRef} style={{ background: '#fff', border: '1px solid #DDD8CF', borderRadius: 20, padding: '48px 40px', maxWidth: 400, width: '100%', textAlign: 'center', boxShadow: '0 16px 48px rgba(0,0,0,0.08)' }}>
-        <div style={{ width: 64, height: 64, background: '#DCFCE7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
-          <CheckCircle2 size={32} color="#2D9A56" />
+      <div ref={successRef} style={{ background: '#fff', borderRadius: 12, padding: 0, maxWidth: 400, width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+        {/* Receipt Header */}
+        <div style={{ background: '#1A1A1A', padding: '32px 24px', textAlign: 'center', color: '#fff' }}>
+          <div style={{ width: 48, height: 48, background: '#DCFCE7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <CheckCircle2 size={24} color="#2D9A56" />
+          </div>
+          <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 22, fontWeight: 700, margin: 0 }}>Payment Slip</h2>
+          <p style={{ fontSize: 13, color: '#A0A0A0', marginTop: 8 }}>Order #{finalOrder.id}</p>
         </div>
-        <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 26, fontWeight: 700, color: '#1A1A1A', marginBottom: 12 }}>Order Sent to Kitchen!</h2>
-        <p style={{ fontSize: 14, color: '#7A7A7A', lineHeight: 1.7, marginBottom: 32 }}>
-          Your order is being prepared. We'll bring it right to your table shortly.
-        </p>
-        <Link to="/menu" style={{ display: 'block', textDecoration: 'none' }}>
-          <button className="btn-dark" style={{ width: '100%', justifyContent: 'center', height: 48 }}>Order More</button>
-        </Link>
+
+        {/* Receipt Body */}
+        <div style={{ padding: '32px 24px' }}>
+          <div style={{ borderBottom: '1px dashed #DDD8CF', paddingBottom: 16, marginBottom: 16 }}>
+            {finalOrder.items.map((item, idx) => (
+              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 14 }}>
+                <span style={{ color: '#4A4A4A' }}>{item.quantity}x {item.name}</span>
+                <span style={{ color: '#1A1A1A', fontWeight: 500 }}>${(item.price * item.quantity).toFixed(2)}</span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 14 }}>
+            <span style={{ color: '#7A7A7A' }}>Subtotal</span>
+            <span style={{ color: '#4A4A4A' }}>${finalOrder.subtotal.toFixed(2)}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, fontSize: 14 }}>
+            <span style={{ color: '#7A7A7A' }}>Tax (8%)</span>
+            <span style={{ color: '#4A4A4A' }}>${finalOrder.tax.toFixed(2)}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #1A1A1A', paddingTop: 16, marginBottom: 32 }}>
+            <span style={{ fontSize: 16, fontWeight: 700, color: '#1A1A1A' }}>Total</span>
+            <span style={{ fontFamily: 'Playfair Display, serif', fontSize: 20, fontWeight: 700, color: '#C8873A' }}>${finalOrder.total.toFixed(2)}</span>
+          </div>
+
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button onClick={() => window.print()} className="btn-outline" style={{ flex: 1, justifyContent: 'center' }}>Print Slip</button>
+            <Link to="/menu" style={{ flex: 1, textDecoration: 'none' }}>
+              <button className="btn-dark" style={{ width: '100%', justifyContent: 'center' }}>New Order</button>
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -98,24 +137,28 @@ export default function Cart() {
               padding: '16px 18px', marginBottom: 10,
               display: 'flex', alignItems: 'center', gap: 14,
             }}>
-              {/* Item image placeholder */}
-              <div style={{ width: 52, height: 52, borderRadius: 10, background: 'linear-gradient(135deg, #E8E1D6, #D4C4AA)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
-                ☕
+              {/* Item image */}
+              <div style={{ width: 52, height: 52, borderRadius: 10, overflow: 'hidden', background: '#F2EDE5', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {item.image ? (
+                  <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <span style={{ fontSize: 20 }}>☕</span>
+                )}
               </div>
 
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontSize: 14, fontWeight: 600, color: '#1A1A1A', marginBottom: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</p>
                 <p style={{ fontSize: 12, color: '#7A7A7A', marginBottom: 10, textTransform: 'capitalize' }}>{item.category || 'Special'}</p>
 
-                {/* Quantity controls */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                {/* Quantity controls pill */}
+                <div style={{ display: 'inline-flex', alignItems: 'center', background: '#F2EDE5', borderRadius: 999, padding: '4px 8px', gap: 12 }}>
                   <button onClick={() => updateQuantity(item._id, -1)}
-                    style={{ width: 28, height: 28, borderRadius: '50%', border: '1.5px solid #DDD8CF', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4A4A4A', transition: 'border-color 0.15s' }}>
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4A4A4A' }}>
                     <Minus size={12} />
                   </button>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: '#1A1A1A', minWidth: 20, textAlign: 'center' }}>{item.quantity}</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: '#1A1A1A', minWidth: 16, textAlign: 'center' }}>{item.quantity}</span>
                   <button onClick={() => updateQuantity(item._id, 1)}
-                    style={{ width: 28, height: 28, borderRadius: '50%', border: '1.5px solid #DDD8CF', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4A4A4A', transition: 'border-color 0.15s' }}>
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4A4A4A' }}>
                     <Plus size={12} />
                   </button>
                 </div>

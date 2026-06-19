@@ -20,9 +20,9 @@ export default function Navbar() {
 
   const links = [
     { to: '/',        label: 'Home' },
-    { to: '/menu',    label: 'Solutions' },
+    { to: '/menu',    label: 'Menu' },
     { to: '/about',   label: 'About' },
-    { to: '/contact', label: 'Pricing' },
+    { to: '/contact', label: 'Contact' },
   ];
 
   return (

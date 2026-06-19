@@ -3,14 +3,10 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [admin, setAdmin] = useState(null);
-
-  useEffect(() => {
+  const [admin, setAdmin] = useState(() => {
     const storedAdmin = localStorage.getItem('cafeAdmin');
-    if (storedAdmin) {
-      setAdmin(JSON.parse(storedAdmin));
-    }
-  }, []);
+    return storedAdmin ? JSON.parse(storedAdmin) : null;
+  });
 
   const login = async (email, password) => {
     try {

@@ -9,7 +9,6 @@ import staffRoutes from './routes/staffRoutes.js';
 import tableRoutes from './routes/tableRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
 import Admin from './models/Admin.js';
-import bcrypt from 'bcryptjs';
 
 // Load environment variables
 dotenv.config();
@@ -34,30 +33,10 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Ensure DB is connected before every request (serverless-safe)
+// Per-request DB connection (serverless-safe, uses cached connection)
 app.use(async (req, res, next) => {
-    try {
-        const conn = await connectDB();
-        if (conn) {
-            // Seed admin on first successful connection
-            try {
-                const adminExists = await Admin.findOne({ email: 'admin@brewmanager.com' });
-                if (!adminExists) {
-                    await Admin.create({
-                        name: 'Super Admin',
-                        email: 'admin@brewmanager.com',
-                        password: 'password123'
-                    });
-                    console.log('[Database] Default admin seeded');
-                }
-            } catch (seedErr) {
-                // silently ignore seed errors
-            }
-        }
-        next();
-    } catch (err) {
-        next();
-    }
+    await connectDB();
+    next();
 });
 
 // API Endpoints
@@ -79,10 +58,38 @@ app.use((err, req, res, next) => {
     res.status(500).json({ message: 'Internal Server Error' });
 });
 
-// For local development only
+// Local development server
 if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, async () => {
         console.log(`[Server] Express server running on port ${PORT}`);
+        // Connect to DB at startup so the message shows immediately
+        const conn = await connectDB();
+        if (conn) {
+            try {
+                const adminExists = await Admin.findOne({ email: 'admin@brewmanager.com' });
+                if (!adminExists) {
+                    await Admin.create({
+                        name: 'Super Admin',
+                        email: 'admin@brewmanager.com',
+                        password: 'password123'
+                    });
+                    console.log('[Database] Default admin created (admin@brewmanager.com / password123)');
+                } else {
+                    console.log('[Database] Admin user already exists');
+                }
+            } catch (err) {
+                // ignore seed errors
+            }
+        }
+    });
+
+    server.on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+            console.error(`[Server] Port ${PORT} is already in use. Please close the other terminal running the backend and try again.`);
+        } else {
+            console.error('[Server] Error:', err.message);
+        }
+        process.exit(1);
     });
 }
 

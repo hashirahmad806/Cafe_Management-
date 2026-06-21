@@ -18,8 +18,8 @@ const PORT = process.env.PORT || 5000;
 
 // Global Middlewares
 const allowedOrigins = [
-    process.env.FRONTEND_URL || 'https://cafe-management-omega-gray.vercel.app',
-    'http://localhost:5173',
+    process.env.FRONTEND_URL || 'https://cafe-management-do4l.vercel.app/',
+    'http://localhost:5174',
 ];
 app.use(cors({
     origin: function(origin, callback) {
